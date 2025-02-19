@@ -1,0 +1,214 @@
+/* General Styles */
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../img/003background.png') no-repeat center center fixed;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    color: rgb(19, 5, 5);
+    opacity: 0.6;
+    z-index: -1;
+}
+
+.container {
+    margin-top: 20px;
+}
+
+.project-section {
+    margin-bottom: 30px;
+}
+
+/* Intro Screen */
+#intro-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #000000;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 1000;
+    transition: opacity 1s ease-in-out;
+}
+
+#intro-screen img {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #000000 !important;
+}
+
+.navbar-brand img {
+    height: 80%;
+    margin-right: 15px;
+    margin-left: 70px;
+    margin-bottom: 15px;
+    padding: 5px;
+}
+
+/* Page Header */
+h1 img {
+    height: 50px;
+    margin-right: 10px;
+    margin-left: 25px;
+}
+
+.container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.card-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 25px;
+}
+
+.project-section {
+    margin-bottom: 30px;
+    text-align: center;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Cards */
+.card {
+    background-color: #088F8F;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, background-color 0.3s ease;
+    width: 270px;
+    min-width: 220px;
+    max-width: 500px;
+    text-align: center;
+    padding: 20px;
+    height: 150px; /* Maintains alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    margin-left: 60px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    background-color: #0047AB;
+}
+
+/* Ensure everything is centered */
+.row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Dropdown */
+.dropdown-content {
+    display: none; /* Initially hidden */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background-color: #000000; /* Solid black for contrast */
+    border-radius: 5px;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease;
+    max-height: 0;
+    opacity: 0;
+    z-index: 100;
+}
+
+.dropdown-content.show {
+    display: block;
+    max-height: 300px; /* Adjust this if needed */
+    opacity: 10;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+}
+
+/* List Items */
+.dropdown-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dropdown-content .list-group-item {
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.dropdown-content .list-group-item a {
+    text-decoration: none;
+    color: white;
+    font-weight: normal;
+}
+
+.dropdown-content .list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: cyan;
+}
+
+/* Disable hover on other cards when dropdown is active */
+.card-container.active .card:not(.active) {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Prevent cards from being hovered when dropdown is active */
+.card-container .card:not(.active) {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.card-container.active .card:not(.active):hover {
+    transform: none;
+    background-color: rgba(0, 255, 255, 0.2);
+}
