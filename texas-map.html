@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Texas Counties Map</title>
+  <title>Texas Map - State and Counties</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -19,8 +19,8 @@
     }
     .county-label {
       font-size: 10px;
-      color: #222;
-      text-shadow: 1px 1px 2px white;
+      color: #111;
+      text-shadow: 1px 1px 2px #fff;
       text-align: center;
     }
   </style>
@@ -28,28 +28,41 @@
 <body>
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
+  <!-- Leaflet and TopoJSON libraries -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
 
   <script>
-    // Initialize map centered roughly on Texas
-    const map = L.map('map', {
-      zoomControl: true,
-      scrollWheelZoom: true,
-    }).setView([31.0, -99.0], 6);
+    // Initialize map centered on Texas
+    const map = L.map('map').setView([31.0, -99.0], 6);
 
-    // Add a light basemap
+    // Base map layer (light OSM)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
       maxZoom: 10,
-      minZoom: 5,
-      attribution: '© OpenStreetMap contributors'
+      minZoom: 5
     }).addTo(map);
 
-    // Fetch and render Texas county boundaries
-    fetch('https://raw.githubusercontent.com/deldersveld/topojson/master/countries/us-states/TX-48-texas-counties.json')
+    // --- Load and draw Texas outline ---
+    fetch('assets/landcalculator/texas_outline_topo.json')
       .then(res => res.json())
-      .then(data => {
-        const counties = L.geoJSON(data, {
+      .then(outlineData => {
+        const outlineGeo = topojson.feature(outlineData, outlineData.objects[Object.keys(outlineData.objects)[0]]);
+        L.geoJSON(outlineGeo, {
+          style: {
+            color: '#000',
+            weight: 2,
+            fillColor: 'none'
+          }
+        }).addTo(map);
+      });
+
+    // --- Load and draw county boundaries ---
+    fetch('assets/landcalculator/txdot_counties_topo.json')
+      .then(res => res.json())
+      .then(countyData => {
+        const countiesGeo = topojson.feature(countyData, countyData.objects[Object.keys(countyData.objects)[0]]);
+        const countiesLayer = L.geoJSON(countiesGeo, {
           style: {
             color: '#555',
             weight: 1,
@@ -57,25 +70,19 @@
             fillOpacity: 0.6
           },
           onEachFeature: (feature, layer) => {
-            layer.bindPopup(`<strong>${feature.properties.NAME} County</strong>`);
+            const name = feature.properties.NAME || feature.properties.County || 'Unknown';
+            layer.bindPopup(`<strong>${name} County</strong>`);
           }
         }).addTo(map);
 
-        // Add text labels (centered per county)
-        counties.eachLayer(layer => {
+        // Label each county near its centroid
+        countiesLayer.eachLayer(layer => {
           const center = layer.getBounds().getCenter();
-          const label = L.divIcon({
-            className: 'county-label',
-            html: featureName(layer.feature),
-          });
+          const name = layer.feature.properties.NAME || layer.feature.properties.County || '';
+          const label = L.divIcon({ className: 'county-label', html: name });
           L.marker(center, { icon: label, interactive: false }).addTo(map);
         });
       });
-
-    // Helper to clean up county names
-    function featureName(feature) {
-      return feature.properties.NAME.replace(' County', '');
-    }
   </script>
 </body>
 </html>
