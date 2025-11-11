@@ -1,1 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Texas Interactive County Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    .county-label {
+      font-size: 11px;
+      color: #111;
+      text-shadow: 0 0 2px #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize map centered on Texas
+    const map = L.map('map').setView([31.0, -99.0], 6);
+
+    // Base tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Load Texas counties GeoJSON
+    fetch('https://raw.githubusercontent.com/deldersveld/topojson/master/countries/us-states/TX-48-texas-counties.json')
+      .then(res => res.json())
+      .then(data => {
+        // Draw county polygons
+        const counties = L.geoJSON(data, {
+          style: {
+            color: "#333",
+            weight: 1,
+            fillColor: "#e6e6e6",
+            fillOpacity: 0.6
+          },
+          onEachFeature: (feature, layer) => {
+            const countyName = feature.properties.NAME;
+            layer.bindPopup(`<strong>${countyName} County</strong>`);
+            layer.on('mouseover', () => layer.setStyle({ fillColor: '#ffd700' }));
+            layer.on('mouseout', () => layer.setStyle({ fillColor: '#e6e6e6' }));
+          }
+        }).addTo(map);
+
+        // Optional: add labels at county centroids
+        counties.eachLayer(layer => {
+          const center = layer.getBounds().getCenter();
+          const label = L.divIcon({
+            className: 'county-label',
+            html: layer.feature.properties.NAME,
+          });
+          L.marker(center, { icon: label, interactive: false }).addTo(map);
+        });
+      });
+  </script>
+</body>
+</html>
 
