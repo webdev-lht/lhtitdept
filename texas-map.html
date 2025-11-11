@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Texas Map - State and Counties</title>
+  <title>Texas Map - State & Counties</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -18,32 +18,33 @@
       width: 100%;
     }
     .county-label {
-      font-size: 10px;
       color: #111;
       text-shadow: 1px 1px 2px #fff;
       text-align: center;
+      font-weight: bold;
+      font-size: 10px;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <!-- Leaflet and TopoJSON libraries -->
+  <!-- Leaflet + TopoJSON -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
 
   <script>
-    // Initialize map centered on Texas
+    // Initialize map
     const map = L.map('map').setView([31.0, -99.0], 6);
 
-    // Base map layer (light OSM)
+    // Add light basemap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 10,
       minZoom: 5
     }).addTo(map);
 
-    // --- Load and draw Texas outline ---
+    // --- Load Texas outline ---
     fetch('assets/landcalculator/texas_outline_topo.json')
       .then(res => res.json())
       .then(outlineData => {
@@ -57,7 +58,7 @@
         }).addTo(map);
       });
 
-    // --- Load and draw county boundaries ---
+    // --- Load County Boundaries ---
     fetch('assets/landcalculator/txdot_counties_topo.json')
       .then(res => res.json())
       .then(countyData => {
@@ -70,17 +71,29 @@
             fillOpacity: 0.6
           },
           onEachFeature: (feature, layer) => {
-            const name = feature.properties.NAME || feature.properties.County || 'Unknown';
+            const name = feature.properties.CNTY_NM || 'Unknown';
             layer.bindPopup(`<strong>${name} County</strong>`);
           }
         }).addTo(map);
 
-        // Label each county near its centroid
+        // Add county labels
         countiesLayer.eachLayer(layer => {
+          const name = layer.feature.properties.CNTY_NM || '';
           const center = layer.getBounds().getCenter();
-          const name = layer.feature.properties.NAME || layer.feature.properties.County || '';
-          const label = L.divIcon({ className: 'county-label', html: name });
+          const label = L.divIcon({
+            className: 'county-label',
+            html: name
+          });
           L.marker(center, { icon: label, interactive: false }).addTo(map);
+        });
+
+        // Resize label text dynamically on zoom
+        map.on('zoomend', () => {
+          const zoom = map.getZoom();
+          const size = Math.max(8, zoom * 1.2);
+          document.querySelectorAll('.county-label').forEach(el => {
+            el.style.fontSize = `${size}px`;
+          });
         });
       });
   </script>
