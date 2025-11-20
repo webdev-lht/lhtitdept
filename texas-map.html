@@ -32,9 +32,16 @@
       "Wilson","Karnes","DeWitt","Jackson","Victoria","Wharton","Brazoria","Matagorda","Galveston","De Witt"
     ];
 
+    const BATCH3 = [
+      "Johnson","Ellis","Navarro","Freestone","Houston","Trinity","Polk","Hardin","Jefferson",
+      "Calhoun","Refugio","Goliad","Bee","Live Oak","Atascosa","Medina","Bandera","Kerr",
+      "Gillespie","Mason","McCulloch","Brown","Mills","Hamilton","Somervell"
+    ];
+
     const toKey = s => (s || '').trim().toLowerCase();
     const batch1Set = new Set(BATCH1.map(toKey));
     const batch2Set = new Set(BATCH2.map(toKey));
+    const batch3Set = new Set(BATCH3.map(toKey));
 
     // ---- map ----
     const map = L.map('map').setView([31, -99], 6);
@@ -58,6 +65,7 @@
         const countiesLayer = L.geoJSON(geo, {
           style: feature => {
             const name = toKey(feature.properties.CNTY_NM);
+            if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 }; // blue
             if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 }; // green
             if (batch1Set.has(name)) return { color:'#444', weight:1, fillColor:'#ffd60a', fillOpacity:0.5 }; // yellow
             return { color:'#555', weight:1, fillColor:'#f2f2f2', fillOpacity:0.6 }; // default
@@ -95,7 +103,8 @@
       const div = L.DomUtil.create('div','legend');
       div.innerHTML = `
         <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
-        <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>`;
+        <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
+        <div><span class="swatch" style="background:#4aa8ff"></span>Batch 3</div>`;
       return div;
     };
     legend.addTo(map);
