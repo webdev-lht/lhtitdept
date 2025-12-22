@@ -38,10 +38,18 @@
       "Gillespie","Mason","McCulloch","Brown","Mills","Hamilton","Somervell"
     ];
 
+    const BATCH4 = [
+      "Henderson","Anderson","Erath","Aransas","San Patricio","Hood","Comanche","Kaufman",
+      "McMullen","Frio","Dallas","Van Zandt","Nueces","Parker","Rockwall","Smith","Eastland",
+      "Tyler","Kimble","Palo Pinto","La Salle","Jim Wells","Nacogdoches","Kleberg","Hunt",
+      "Wise","Jasper","Zavala","Stephens","Callahan","Orange","San Augustine","Concho","Gregg"
+    ];
+
     const toKey = s => (s || '').trim().toLowerCase();
     const batch1Set = new Set(BATCH1.map(toKey));
     const batch2Set = new Set(BATCH2.map(toKey));
     const batch3Set = new Set(BATCH3.map(toKey));
+    const batch4Set = new Set(BATCH4.map(toKey));
 
     // ---- map ----
     const map = L.map('map').setView([31, -99], 6);
@@ -65,9 +73,11 @@
         const countiesLayer = L.geoJSON(geo, {
           style: feature => {
             const name = toKey(feature.properties.CNTY_NM);
+            if (batch4Set.has(name)) return { color:'#444', weight:1, fillColor:'#6a0dad', fillOpacity:0.5 }; // blue
             if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 }; // blue
             if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 }; // green
             if (batch1Set.has(name)) return { color:'#444', weight:1, fillColor:'#ffd60a', fillOpacity:0.5 }; // yellow
+            
             return { color:'#555', weight:1, fillColor:'#f2f2f2', fillOpacity:0.6 }; // default
           },
           onEachFeature: (feature, layer) => {
@@ -104,7 +114,8 @@
       div.innerHTML = `
         <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
         <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
-        <div><span class="swatch" style="background:#4aa8ff"></span>Batch 3</div>`;
+        <div><span class="swatch" style="background:#4aa8ff"></span>Batch 3</div>
+        <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>`;
       return div;
     };
     legend.addTo(map);
