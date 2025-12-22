@@ -100,35 +100,41 @@
           }
         }).addTo(map);
 
-        // ---- County finder (dropdown → zoom) ----
+        // ---- County finder (alphabetical dropdown → zoom) ----
           const select = document.getElementById('countySelect');
-          const countyBounds = {};
+          const countyBounds = [];
+          const countyMap = {};
           
-          // populate dropdown + cache bounds
+          // collect counties
           countiesLayer.eachLayer(layer => {
             const name = layer.feature.properties.CNTY_NM;
             if (!name) return;
           
             const key = toKey(name);
-            countyBounds[key] = layer.getBounds();
-          
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = name;
-            select.appendChild(opt);
+            countyMap[key] = layer.getBounds();
+            countyBounds.push({ name, key });
           });
+          
+          // sort alphabetically
+          countyBounds
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .forEach(({ name, key }) => {
+              const opt = document.createElement('option');
+              opt.value = key;
+              opt.textContent = name;
+              select.appendChild(opt);
+            });
           
           // zoom on select
           select.addEventListener('change', e => {
             const key = e.target.value;
-            if (!key || !countyBounds[key]) return;
+            if (!key || !countyMap[key]) return;
           
-            map.fitBounds(countyBounds[key], {
+            map.fitBounds(countyMap[key], {
               padding: [40, 40],
               maxZoom: 9
             });
           });
-
 
         // labels (show from zoom >= 7)
         const labelMarkers = [];
