@@ -8,212 +8,213 @@
   <style>
     html, body { height: 100%; margin: 0; }
     #map { height: 100%; width: 100%; }
-    .county-label { color:#111; text-shadow:1px 1px 2px #fff; font-weight:600; font-size:10px; text-align:center; }
-    .legend { position: absolute; bottom: 10px; left: 10px; background: #fff; padding: 8px 10px; border-radius: 6px; box-shadow: 0 1px 5px rgba(0,0,0,.3); font: 12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .legend .swatch { display:inline-block; width:12px; height:12px; margin-right:6px; vertical-align:middle; border:1px solid #444; }
+
+    .county-label {
+      color:#111;
+      text-shadow:1px 1px 2px #fff;
+      font-weight:600;
+      font-size:10px;
+      text-align:center;
+    }
+
+    .legend {
+      position:absolute;
+      bottom:10px;
+      left:10px;
+      background:#fff;
+      padding:8px 10px;
+      border-radius:6px;
+      box-shadow:0 1px 5px rgba(0,0,0,.3);
+      font:12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .legend .swatch {
+      display:inline-block;
+      width:12px;
+      height:12px;
+      margin-right:6px;
+      vertical-align:middle;
+      border:1px solid #444;
+    }
+
+    #countySelect {
+      position:absolute;
+      top:10px;
+      right:10px;
+      z-index:1000;
+      padding:6px 8px;
+      border-radius:6px;
+      border:1px solid #666;
+      font-size:13px;
+      background:#fff;
+    }
   </style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <select id="countySelect" style="
-    position:absolute;
-    top:10px;
-    right:10px;
-    z-index:1000;
-    padding:6px 8px;
-    border-radius:6px;
-    border:1px solid #666;
-    font-size:13px;
-    ">
-    <option value="">🔍 Find a county…</option>
-  </select>
+<div id="map"></div>
 
+<select id="countySelect">
+  <option value="">🔍 Find a county…</option>
+</select>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/topojson-client@3"></script>
-  <script>
-    // ---- lists (normalized, typos fixed: DeWitt, Matagorda) ----
-    const BATCH1 = [
-      "McLennan","Falls","Robertson","Bell","Milam","Brazos","Grimes","Burleson","Lee",
-      "Williamson","Bastrop","Travis","Washington","Waller","Austin","Fayette","Hays",
-      "Caldwell","Harris","Comal","Guadalupe","Gonzales","Lavaca","Colorado","Fort Bend",
-      "Burnet","Walker"
-    ];
-    const BATCH2 = [
-      "Chambers","Liberty","San Jacinto","Walker","Montgomery","Madison","Leon","Limestone",
-      "Hill","Bosque","Coryell","Lampasas","San Saba","Llano","Blanco","Kendall","Bexar",
-      "Wilson","Karnes","DeWitt","Jackson","Victoria","Wharton","Brazoria","Matagorda","Galveston","De Witt"
-    ];
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3"></script>
 
-    const BATCH3 = [
-      "Johnson","Ellis","Navarro","Freestone","Houston","Trinity","Polk","Hardin","Jefferson",
-      "Calhoun","Refugio","Goliad","Bee","Live Oak","Atascosa","Medina","Bandera","Kerr",
-      "Gillespie","Mason","McCulloch","Brown","Mills","Hamilton","Somervell"
-    ];
+<script>
+/* ===============================
+   BATCH LISTS
+   =============================== */
+const BATCH1 = [
+  "McLennan","Falls","Robertson","Bell","Milam","Brazos","Grimes","Burleson","Lee",
+  "Williamson","Bastrop","Travis","Washington","Waller","Austin","Fayette","Hays",
+  "Caldwell","Harris","Comal","Guadalupe","Gonzales","Lavaca","Colorado","Fort Bend",
+  "Burnet","Walker"
+];
 
-    const BATCH4 = [
-      "Henderson","Anderson","Erath","Aransas","San Patricio","Hood","Comanche","Kaufman",
-      "McMullen","Frio","Dallas","Van Zandt","Nueces","Parker","Rockwall","Smith","Eastland",
-      "Tyler","Kimble","Palo Pinto","La Salle","Jim Wells","Nacogdoches","Kleberg","Hunt",
-      "Wise","Jasper","Zavala","Stephens","Callahan","Orange","San Augustine","Concho","Gregg"
-    ];
+const BATCH2 = [
+  "Chambers","Liberty","San Jacinto","Montgomery","Madison","Leon","Limestone",
+  "Hill","Bosque","Coryell","Lampasas","San Saba","Llano","Blanco","Kendall","Bexar",
+  "Wilson","Karnes","DeWitt","Jackson","Victoria","Wharton","Brazoria","Matagorda","Galveston"
+];
 
-    const toKey = s => (s || '').trim().toLowerCase();
-    const batch1Set = new Set(BATCH1.map(toKey));
-    const batch2Set = new Set(BATCH2.map(toKey));
-    const batch3Set = new Set(BATCH3.map(toKey));
-    const batch4Set = new Set(BATCH4.map(toKey));
+const BATCH3 = [
+  "Johnson","Ellis","Navarro","Freestone","Houston","Trinity","Polk","Hardin","Jefferson",
+  "Calhoun","Refugio","Goliad","Bee","Live Oak","Atascosa","Medina","Bandera","Kerr",
+  "Gillespie","Mason","McCulloch","Brown","Mills","Hamilton","Somervell"
+];
 
-    // ---- map ----
-    const map = L.map('map').setView([31, -99], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'© OpenStreetMap contributors', maxZoom: 11, minZoom: 5
+const BATCH4 = [
+  "Henderson","Anderson","Erath","Aransas","San Patricio","Hood","Comanche","Kaufman",
+  "McMullen","Frio","Dallas","Van Zandt","Nueces","Parker","Rockwall","Smith","Eastland",
+  "Tyler","Kimble","Palo Pinto","La Salle","Jim Wells","Nacogdoches","Kleberg","Hunt",
+  "Wise","Jasper","Zavala","Stephens","Callahan","Orange","San Augustine","Concho","Gregg"
+];
+
+const toKey = s => (s || '').trim().toLowerCase();
+const batch1Set = new Set(BATCH1.map(toKey));
+const batch2Set = new Set(BATCH2.map(toKey));
+const batch3Set = new Set(BATCH3.map(toKey));
+const batch4Set = new Set(BATCH4.map(toKey));
+
+/* ===============================
+   MAP INIT
+   =============================== */
+const map = L.map('map').setView([31, -99], 6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'© OpenStreetMap contributors',
+  maxZoom:11,
+  minZoom:5
+}).addTo(map);
+
+/* ===============================
+   TEXAS OUTLINE
+   =============================== */
+fetch('assets/landcalculator/texas_outline_topo.json')
+  .then(r => r.json())
+  .then(topo => {
+    const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
+    L.geoJSON(geo, { style:{ color:'#000', weight:2, fill:false } }).addTo(map);
+  });
+
+/* ===============================
+   COUNTIES + FINDER + PIN
+   =============================== */
+let activePin = null;
+
+fetch('assets/landcalculator/txdot_counties_topo.json')
+  .then(r => r.json())
+  .then(topo => {
+    const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
+
+    const countiesLayer = L.geoJSON(geo, {
+      style: f => {
+        const name = toKey(f.properties.CNTY_NM);
+        if (batch4Set.has(name)) return { color:'#444', weight:1, fillColor:'#6a0dad', fillOpacity:0.5 };
+        if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 };
+        if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 };
+        if (batch1Set.has(name)) return { color:'#444', weight:1, fillColor:'#ffd60a', fillOpacity:0.5 };
+        return { color:'#555', weight:1, fillColor:'#f2f2f2', fillOpacity:0.6 };
+      },
+      onEachFeature: (f, layer) => {
+        layer.bindPopup(`<strong>${f.properties.CNTY_NM} County</strong>`);
+      }
     }).addTo(map);
 
-    // outline
-    fetch('assets/landcalculator/texas_outline_topo.json')
-      .then(r=>r.json())
-      .then(topo=>{
-        const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
-        L.geoJSON(geo, { style:{ color:'#000', weight:2, fill:false } }).addTo(map);
-      });
+    /* ---- County Finder ---- */
+    const select = document.getElementById('countySelect');
+    const countyList = [];
+    const countyBounds = {};
 
-    // counties + styling
-    fetch('assets/landcalculator/txdot_counties_topo.json')
-      .then(r=>r.json())
-      .then(topo=>{
-        const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
-        const countiesLayer = L.geoJSON(geo, {
-          style: feature => {
-            const name = toKey(feature.properties.CNTY_NM);
-            if (batch4Set.has(name)) return { color:'#444', weight:1, fillColor:'#6a0dad', fillOpacity:0.5 }; // blue
-            if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 }; // blue
-            if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 }; // green
-            if (batch1Set.has(name)) return { color:'#444', weight:1, fillColor:'#ffd60a', fillOpacity:0.5 }; // yellow
-            
-            return { color:'#555', weight:1, fillColor:'#f2f2f2', fillOpacity:0.6 }; // default
-          },
-          onEachFeature: (feature, layer) => {
-            const name = feature.properties.CNTY_NM || 'Unknown';
-            layer.bindPopup(`<strong>${name} County</strong>`);
-          }
-        }).addTo(map);
-
-        /* ===============================
-     MAP INIT
-     =============================== */
-  const map = L.map('map').setView([31, -99], 6);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap contributors',
-    maxZoom: 11,
-    minZoom: 5
-  }).addTo(map);
-
-  /* ===============================
-     TEXAS OUTLINE
-     =============================== */
-  fetch('assets/landcalculator/texas_outline_topo.json')
-    .then(r => r.json())
-    .then(topo => {
-      const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
-      L.geoJSON(geo, { style:{ color:'#000', weight:2, fill:false } }).addTo(map);
+    countiesLayer.eachLayer(layer => {
+      const name = layer.feature.properties.CNTY_NM;
+      if (!name) return;
+      const key = toKey(name);
+      countyBounds[key] = layer.getBounds();
+      countyList.push({ name, key });
     });
 
-  /* ===============================
-     COUNTIES + FINDER + PIN
-     =============================== */
-  let activePin = null;
-
-  fetch('assets/landcalculator/txdot_counties_topo.json')
-    .then(r => r.json())
-    .then(topo => {
-      const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
-
-      const countiesLayer = L.geoJSON(geo, {
-        style: f => {
-          const name = toKey(f.properties.CNTY_NM);
-          if (batch4Set.has(name)) return { color:'#444', weight:1, fillColor:'#6a0dad', fillOpacity:0.5 };
-          if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 };
-          if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 };
-          if (batch1Set.has(name)) return { color:'#444', weight:1, fillColor:'#ffd60a', fillOpacity:0.5 };
-          return { color:'#555', weight:1, fillColor:'#f2f2f2', fillOpacity:0.6 };
-        },
-        onEachFeature: (f, layer) => {
-          layer.bindPopup(`<strong>${f.properties.CNTY_NM} County</strong>`);
-        }
-      }).addTo(map);
-
-      /* ---- County Finder ---- */
-      const select = document.getElementById('countySelect');
-      const countyList = [];
-      const countyMap = {};
-
-      countiesLayer.eachLayer(layer => {
-        const name = layer.feature.properties.CNTY_NM;
-        if (!name) return;
-        const key = toKey(name);
-        countyMap[key] = layer.getBounds();
-        countyList.push({ name, key });
+    countyList
+      .sort((a,b) => a.name.localeCompare(b.name))
+      .forEach(({name,key}) => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = name;
+        select.appendChild(opt);
       });
 
-      countyList
-        .sort((a,b) => a.name.localeCompare(b.name))
-        .forEach(({name,key}) => {
-          const opt = document.createElement('option');
-          opt.value = key;
-          opt.textContent = name;
-          select.appendChild(opt);
-        });
+    select.addEventListener('change', e => {
+      const key = e.target.value;
+      if (!key || !countyBounds[key]) return;
 
-      select.addEventListener('change', e => {
-        const key = e.target.value;
-        if (!key || !countyMap[key]) return;
+      const bounds = countyBounds[key];
+      const center = bounds.getCenter();
 
-        const bounds = countyMap[key];
-        const center = bounds.getCenter();
+      map.fitBounds(bounds, { padding:[40,40], maxZoom:9 });
 
-        map.fitBounds(bounds, { padding:[40,40], maxZoom:9 });
-
-        if (activePin) map.removeLayer(activePin);
-        activePin = L.marker(center).addTo(map)
-          .bindPopup(`<strong>${e.target.selectedOptions[0].text} County</strong>`)
-          .openPopup();
-      });
-
-      /* ---- Labels ---- */
-      const labelMarkers = [];
-      countiesLayer.eachLayer(layer => {
-        const name = layer.feature.properties.CNTY_NM;
-        const center = layer.getBounds().getCenter();
-        const label = L.divIcon({ className:'county-label', html:name });
-        labelMarkers.push(L.marker(center, { icon:label, interactive:false }));
-      });
-
-      const labelGroup = L.layerGroup().addTo(map);
-
-      const updateLabels = () => {
-        labelGroup.clearLayers();
-        if (map.getZoom() >= 7) labelMarkers.forEach(m => labelGroup.addLayer(m));
-      };
-
-      map.on('zoomend', updateLabels);
-      updateLabels();
+      if (activePin) map.removeLayer(activePin);
+      activePin = L.marker(center)
+        .addTo(map)
+        .bindPopup(`<strong>${e.target.selectedOptions[0].text} County</strong>`)
+        .openPopup();
     });
 
-    // legend
-    const legend = L.control({position:'bottomleft'});
-    legend.onAdd = function(){
-      const div = L.DomUtil.create('div','legend');
-      div.innerHTML = `
-        <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
-        <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
-        <div><span class="swatch" style="background:#4aa8ff"></span>Batch 3</div>
-        <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>`;
-      return div;
+    /* ---- Labels ---- */
+    const labelMarkers = [];
+    countiesLayer.eachLayer(layer => {
+      const name = layer.feature.properties.CNTY_NM;
+      const center = layer.getBounds().getCenter();
+      const label = L.divIcon({ className:'county-label', html:name });
+      labelMarkers.push(L.marker(center, { icon:label, interactive:false }));
+    });
+
+    const labelGroup = L.layerGroup().addTo(map);
+
+    const updateLabels = () => {
+      labelGroup.clearLayers();
+      if (map.getZoom() >= 7) labelMarkers.forEach(m => labelGroup.addLayer(m));
     };
-    legend.addTo(map);
-  </script>
+
+    map.on('zoomend', updateLabels);
+    updateLabels();
+  });
+
+/* ===============================
+   LEGEND
+   =============================== */
+const legend = L.control({position:'bottomleft'});
+legend.onAdd = () => {
+  const div = L.DomUtil.create('div','legend');
+  div.innerHTML = `
+    <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
+    <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
+    <div><span class="swatch" style="background:#4a90e2"></span>Batch 3</div>
+    <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>`;
+  return div;
+};
+legend.addTo(map);
+</script>
+
 </body>
 </html>
