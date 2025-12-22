@@ -100,62 +100,107 @@
           }
         }).addTo(map);
 
-        // ---- County finder (alphabetical dropdown → zoom) ----
-          const select = document.getElementById('countySelect');
-          const countyBounds = [];
-          const countyMap = {};
-          
-          // collect counties
-          countiesLayer.eachLayer(layer => {
-            const name = layer.feature.properties.CNTY_NM;
-            if (!name) return;
-          
-            const key = toKey(name);
-            countyMap[key] = layer.getBounds();
-            countyBounds.push({ name, key });
-          });
-          
-          // sort alphabetically
-          countyBounds
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .forEach(({ name, key }) => {
-              const opt = document.createElement('option');
-              opt.value = key;
-              opt.textContent = name;
-              select.appendChild(opt);
-            });
-          
-          // zoom on select
-          select.addEventListener('change', e => {
-            const key = e.target.value;
-            if (!key || !countyMap[key]) return;
-          
-            map.fitBounds(countyMap[key], {
-              padding: [40, 40],
-              maxZoom: 9
-            });
-          });
+        /* ===============================
+     MAP INIT
+     =============================== */
+  const map = L.map('map').setView([31, -99], 6);
 
-        // labels (show from zoom >= 7)
-        const labelMarkers = [];
-        countiesLayer.eachLayer(layer=>{
-          const name = layer.feature.properties.CNTY_NM || '';
-          const center = layer.getBounds().getCenter();
-          const label = L.divIcon({ className:'county-label', html: name });
-          labelMarkers.push(L.marker(center, { icon: label, interactive:false }));
-        });
-        const labelGroup = L.layerGroup().addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors',
+    maxZoom: 11,
+    minZoom: 5
+  }).addTo(map);
 
-        const updateLabels = () => {
-          labelGroup.clearLayers();
-          const z = map.getZoom();
-          const size = Math.max(8, z * 1.2);
-          document.querySelectorAll('.county-label').forEach(el => el.style.fontSize = `${size}px`);
-          if (z >= 7) labelMarkers.forEach(m => labelGroup.addLayer(m));
-        };
-        map.on('zoomend', updateLabels);
-        updateLabels();
+  /* ===============================
+     TEXAS OUTLINE
+     =============================== */
+  fetch('assets/landcalculator/texas_outline_topo.json')
+    .then(r => r.json())
+    .then(topo => {
+      const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
+      L.geoJSON(geo, { style:{ color:'#000', weight:2, fill:false } }).addTo(map);
+    });
+
+  /* ===============================
+     COUNTIES + FINDER + PIN
+     =============================== */
+  let activePin = null;
+
+  fetch('assets/landcalculator/txdot_counties_topo.json')
+    .then(r => r.json())
+    .then(topo => {
+      const geo = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]);
+
+      const countiesLayer = L.geoJSON(geo, {
+        style: f => {
+          const name = toKey(f.properties.CNTY_NM);
+          if (batch4Set.has(name)) return { color:'#444', weight:1, fillColor:'#6a0dad', fillOpacity:0.5 };
+          if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 };
+          if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 };
+          if (batch1Set.has(name)) return { color:'#444', weight:1, fillColor:'#ffd60a', fillOpacity:0.5 };
+          return { color:'#555', weight:1, fillColor:'#f2f2f2', fillOpacity:0.6 };
+        },
+        onEachFeature: (f, layer) => {
+          layer.bindPopup(`<strong>${f.properties.CNTY_NM} County</strong>`);
+        }
+      }).addTo(map);
+
+      /* ---- County Finder ---- */
+      const select = document.getElementById('countySelect');
+      const countyList = [];
+      const countyMap = {};
+
+      countiesLayer.eachLayer(layer => {
+        const name = layer.feature.properties.CNTY_NM;
+        if (!name) return;
+        const key = toKey(name);
+        countyMap[key] = layer.getBounds();
+        countyList.push({ name, key });
       });
+
+      countyList
+        .sort((a,b) => a.name.localeCompare(b.name))
+        .forEach(({name,key}) => {
+          const opt = document.createElement('option');
+          opt.value = key;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+
+      select.addEventListener('change', e => {
+        const key = e.target.value;
+        if (!key || !countyMap[key]) return;
+
+        const bounds = countyMap[key];
+        const center = bounds.getCenter();
+
+        map.fitBounds(bounds, { padding:[40,40], maxZoom:9 });
+
+        if (activePin) map.removeLayer(activePin);
+        activePin = L.marker(center).addTo(map)
+          .bindPopup(`<strong>${e.target.selectedOptions[0].text} County</strong>`)
+          .openPopup();
+      });
+
+      /* ---- Labels ---- */
+      const labelMarkers = [];
+      countiesLayer.eachLayer(layer => {
+        const name = layer.feature.properties.CNTY_NM;
+        const center = layer.getBounds().getCenter();
+        const label = L.divIcon({ className:'county-label', html:name });
+        labelMarkers.push(L.marker(center, { icon:label, interactive:false }));
+      });
+
+      const labelGroup = L.layerGroup().addTo(map);
+
+      const updateLabels = () => {
+        labelGroup.clearLayers();
+        if (map.getZoom() >= 7) labelMarkers.forEach(m => labelGroup.addLayer(m));
+      };
+
+      map.on('zoomend', updateLabels);
+      updateLabels();
+    });
 
     // legend
     const legend = L.control({position:'bottomleft'});
