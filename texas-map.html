@@ -73,7 +73,7 @@ const BATCH1 = [
 ];
 
 const BATCH2 = [
-  "Chambers","Liberty","San Jacinto","Montgomery","Madison","Leon","Limestone", "De Witt"
+  "Chambers","Liberty","San Jacinto","Montgomery","Madison","Leon","Limestone",
   "Hill","Bosque","Coryell","Lampasas","San Saba","Llano","Blanco","Kendall","Bexar",
   "Wilson","Karnes","DeWitt","Jackson","Victoria","Wharton","Brazoria","Matagorda","Galveston"
 ];
@@ -200,21 +200,21 @@ fetch('assets/landcalculator/txdot_counties_topo.json')
     updateLabels();
   });
 
-/* ===============================
-   LEGEND
-   =============================== */
-const legend = L.control({position:'bottomleft'});
-legend.onAdd = () => {
-  const div = L.DomUtil.create('div','legend');
-  div.innerHTML = `
-    <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
-    <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
-    <div><span class="swatch" style="background:#4a90e2"></span>Batch 3</div>
-    <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>`;
-  return div;
-};
-legend.addTo(map);
-</script>
-
-</body>
+  /* ===============================
+     LEGEND
+     =============================== */
+  const legend = L.control({position:'bottomleft'});
+  legend.onAdd = () => {
+    const div = L.DomUtil.create('div','legend');
+    div.innerHTML = `
+      <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
+      <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
+      <div><span class="swatch" style="background:#4a90e2"></span>Batch 3</div>
+      <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>`;
+    return div;
+  };
+  legend.addTo(map);
+  </script>
+  
+  </body>
 </html>
