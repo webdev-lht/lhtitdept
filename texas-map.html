@@ -16,6 +16,20 @@
 <body>
   <div id="map"></div>
 
+  <select id="countySelect" style="
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index:1000;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid #666;
+    font-size:13px;
+    ">
+    <option value="">🔍 Find a county…</option>
+  </select>
+
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
   <script>
@@ -85,6 +99,36 @@
             layer.bindPopup(`<strong>${name} County</strong>`);
           }
         }).addTo(map);
+
+        // ---- County finder (dropdown → zoom) ----
+          const select = document.getElementById('countySelect');
+          const countyBounds = {};
+          
+          // populate dropdown + cache bounds
+          countiesLayer.eachLayer(layer => {
+            const name = layer.feature.properties.CNTY_NM;
+            if (!name) return;
+          
+            const key = toKey(name);
+            countyBounds[key] = layer.getBounds();
+          
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = name;
+            select.appendChild(opt);
+          });
+          
+          // zoom on select
+          select.addEventListener('change', e => {
+            const key = e.target.value;
+            if (!key || !countyBounds[key]) return;
+          
+            map.fitBounds(countyBounds[key], {
+              padding: [40, 40],
+              maxZoom: 9
+            });
+          });
+
 
         // labels (show from zoom >= 7)
         const labelMarkers = [];
