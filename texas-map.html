@@ -91,11 +91,24 @@ const BATCH4 = [
   "Wise","Jasper","Zavala","Stephens","Callahan","Orange","San Augustine","Concho","Gregg"
 ];
 
+ const BATCH5 = [
+  "Upshur","Jack","Shelby","Panola","Dimmit","Sabine","Runnels","Hopkins",
+  "Edwards","Newton","Young","Montague","Shackelford","Cooke","Franklin",
+  "Fannin","Camp","Sherman","Delta","Kenedy","Harrison","Taylor","Sutton",
+  "Brooks","Tom Green","Maverick","Titus","Schleicher","Kinney","Throckmorton",
+  "Webb","Morris","Marion","Lamar","Jim Hogg","Archer","Jones","Clay","Coke",
+  "Willacy","Red River","Cass","Baylor","Wichita","Val Verde","Haskell",
+  "Zapata","Nolan","Starr","Irion"
+];
+
+
 const toKey = s => (s || '').trim().toLowerCase();
 const batch1Set = new Set(BATCH1.map(toKey));
 const batch2Set = new Set(BATCH2.map(toKey));
 const batch3Set = new Set(BATCH3.map(toKey));
 const batch4Set = new Set(BATCH4.map(toKey));
+const batch5Set = new Set(BATCH5.map(toKey));
+
 
 /* ===============================
    MAP INIT
@@ -131,6 +144,7 @@ fetch('assets/landcalculator/txdot_counties_topo.json')
     const countiesLayer = L.geoJSON(geo, {
       style: f => {
         const name = toKey(f.properties.CNTY_NM);
+        if (batch5Set.has(name)) return { color:'#444', weight:1, fillColor:'#cc5500', fillOpacity:0.5 };
         if (batch4Set.has(name)) return { color:'#444', weight:1, fillColor:'#6a0dad', fillOpacity:0.5 };
         if (batch3Set.has(name)) return { color:'#444', weight:1, fillColor:'#4a90e2', fillOpacity:0.5 };
         if (batch2Set.has(name)) return { color:'#444', weight:1, fillColor:'#2ecc71', fillOpacity:0.5 };
@@ -210,7 +224,8 @@ fetch('assets/landcalculator/txdot_counties_topo.json')
       <div><span class="swatch" style="background:#ffd60a"></span>Batch 1</div>
       <div><span class="swatch" style="background:#2ecc71"></span>Batch 2</div>
       <div><span class="swatch" style="background:#4a90e2"></span>Batch 3</div>
-      <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>`;
+      <div><span class="swatch" style="background:#6a0dad"></span>Batch 4</div>
+      <div><span class="swatch" style="background:#cc5500"></span>Batch 5</div>`;
     return div;
   };
   legend.addTo(map);
